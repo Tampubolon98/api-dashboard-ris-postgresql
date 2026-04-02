@@ -1,0 +1,66 @@
+from repositories.employee.master_employee_repository import get_master_employee_repository, get_employee_spg_repository, get_employee_pkl_repository, get_employee_terminate_repository
+from sqlalchemy.ext.asyncio import AsyncSession
+
+async def get_master_employee_controller(db: AsyncSession):
+    try:
+        data = await get_master_employee_repository(db)
+
+        return {
+            "status": True,
+            "message": 'OK',
+            "total_data": len(data),
+            "data": data
+        }
+    except Exception as e:
+        return {
+            "status": False,
+            "message": str(e)
+        }
+    
+async def get_employee_spg_controller(db: AsyncSession):
+    try:
+        data = await get_employee_spg_repository(db)
+
+        return {
+            "status": True,
+            "message": 'OK',
+            "total_data": len(data),
+            "data": data
+        }
+    except Exception as e:
+        return {
+            "status": False,
+            "message": str(e)
+        }
+    
+async def get_employee_pkl_controller(db: AsyncSession):
+    try:
+        data = await get_employee_pkl_repository(db)
+
+        return {
+            "status": True,
+            "message": 'OK',
+            "total_data": len(data),
+            "data": data
+        }
+    except Exception as e:
+        return {
+            "status": False,
+            "message": str(e)
+        }
+    
+async def get_employee_terminate_controller(db: AsyncSession):
+    try:
+        data = await get_employee_terminate_repository(db)
+
+        return {
+            "status": True,
+            "message": 'OK',
+            "total_data": len(data),
+            "data": data
+        }
+    except Exception as e:
+        return {
+            "status": False,
+            "message": str(e)
+        }
