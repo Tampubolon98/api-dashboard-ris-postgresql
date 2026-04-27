@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from decimal import Decimal
 
 class TaxKeluaranBase(BaseModel):
@@ -37,14 +37,13 @@ class TaxKeluaranCreateBase(BaseModel):
     process_tax_out: Optional[int] = 0
     user_create: str = "SYSTEM"
     date_create: Optional[datetime] = None
-    user_modified: str = "SYSTEM"
-    date_modified: Optional[datetime] = None
-    npwp: str
-    name: str
-    address: str
-    city_nm: str
+    npwp: Optional[str] = None
+    name: Optional[str] = None
+    address: Optional[str] = None
+    city_nm: Optional[str] = None
     postcode: Optional[Decimal] = None
     curr_code: str
+    tax_series_no: Optional[str] = None
     kurs_rate: Optional[int] = 0
     tr_code: str
     remark: str
@@ -52,15 +51,16 @@ class TaxKeluaranCreateBase(BaseModel):
     status_ap: str
     RELEASE: Optional[Decimal] = None
     tgl_input: Optional[datetime] = None
-    npwp_potong: str
+    npwp_potong: Optional[str] = None
     kwitansi_no: str
 
 class TaxKeluaranCreate(TaxKeluaranCreateBase):
     pass
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class CreateTaxKeluaranResponse(BaseModel):
     status: bool
     message: str
+    data: list[TaxKeluaranCreate]
