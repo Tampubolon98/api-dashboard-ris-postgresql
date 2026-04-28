@@ -6,8 +6,7 @@ from controllers.tax.tax_masukan_controller import get_tax_bahan_controller, upd
 from controllers.tax.tax_keluaran_controller import get_tax_keluaran_controller, create_tax_keluaran_controller
 from app.database import engine, Base, get_db, async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from datetime import date, datetime
+from datetime import date
 
 router = APIRouter()
 
@@ -42,6 +41,6 @@ async def get_tax_keluaran(db: AsyncSession = Depends(get_db), limit: int = 10):
     return result
 
 @router.post("/tax-keluaran/post", response_model=CreateTaxKeluaranResponse, tags=["tax keluaran"])
-async def create_tax_keluaran(create_tax: TaxKeluaranCreate, db: AsyncSession = Depends(get_db)):
-    result = await create_tax_keluaran_controller(create_tax=create_tax, db=db)
+async def create_tax_keluaran(start_date: date, end_date: date, invoice_no: str, customer_id: str, tr_code: str, outlet_code: str, db: AsyncSession = Depends(get_db)):
+    result = await create_tax_keluaran_controller(start_date=start_date, end_date=end_date, invoice_no=invoice_no, customer_id=customer_id, tr_code=tr_code, outlet_code=outlet_code, db=db)
     return result

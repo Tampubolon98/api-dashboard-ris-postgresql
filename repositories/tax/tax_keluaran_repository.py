@@ -1,16 +1,22 @@
-from models.tax.tax_keluaran_model import TaxKeluaranModel, SchdinvdModel, PromosiModel, DistcustModel, ArpjkoModel
+from models.tax.tax_keluaran_model import TaxKeluaranModel, SchdinvdModel, KPromosiModel, DistcustModel, ArpjkoModel
 from models.supplier.supplier_model import SupplierModel
-from schemas.tax.tax_keluaran_schema import TaxKeluaranCreate
-from sqlalchemy.future import select
+# from sqlalchemy.future import select, and_
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import date, datetime
+from decimal import Decimal
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 async def get_tax_keluaran_repository(db: AsyncSession, limit: int = 10):
     tax = await db.execute(
-        select(TaxKeluaranModel, SchdinvdModel, SupplierModel, PromosiModel, DistcustModel)
+        select(TaxKeluaranModel, SchdinvdModel, SupplierModel, KPromosiModel, DistcustModel)
         .join(SchdinvdModel, TaxKeluaranModel.invoice_no == SchdinvdModel.invoice_no)
         .join(SupplierModel, TaxKeluaranModel.customer_code == SupplierModel.supplier_code)
-        .join(PromosiModel, TaxKeluaranModel.invoice_no == PromosiModel.invoice_no)
-        .join(DistcustModel, PromosiModel.distcustnum == DistcustModel.distcustnum)
+        .join(KPromosiModel, TaxKeluaranModel.invoice_no == KPromosiModel.invoice_no)
+        .join(DistcustModel, KPromosiModel.distcustnum == DistcustModel.distcustnum)
         .limit(limit)
     )
 
@@ -27,10 +33,119 @@ async def get_tax_keluaran_repository(db: AsyncSession, limit: int = 10):
         })
     return result
 
-async def create_tax_keluaran_repository(create_tax: TaxKeluaranCreate, db: AsyncSession):
-    new_post = ArpjkoModel(**create_tax.model_dump())
+async def create_tax_keluaran_repository(db: AsyncSession, start_date: date, end_date: date, invoice_no: str, customer_id: str, tr_code: str, outlet_code: str):
+    try:
+        stmt = select(
+            TaxKeluaranModel, 
+            SupplierModel, 
+            SchdinvdModel, 
+            KPromosiModel, 
+            DistcustModel
+        ).select_from(
+            TaxKeluaranModel
+        ).outerjoin(
+            SupplierModel, TaxKeluaranModel.customer_code == SupplierModel.supplier_code
+        ).outerjoin(
+            SchdinvdModel, TaxKeluaranModel.invoice_no == SchdinvdModel.invoice_no
+        ).outerjoin(
+            KPromosiModel, 
+            and_(
+                TaxKeluaranModel.invoice_no == KPromosiModel.invoice_no,
+                ~TaxKeluaranModel.trx_code.in_(('ARGD', 'LFEE'))
+            )
+        ).outerjoin(
+            DistcustModel, 
+            and_(
+                KPromosiModel.supplier == DistcustModel.customer_code,
+                KPromosiModel.distcustnum == DistcustModel.distcustnum
+            )
+        ).where(
+            TaxKeluaranModel.outlet_code == outlet_code,
+            TaxKeluaranModel.invoice_date.between(start_date, end_date)
+        )
 
-    db.add(new_post)
-    await db.commit()
-    await db.refresh(new_post)
-    return new_post
+        if invoice_no:
+            stmt = stmt.where(TaxKeluaranModel.invoice_no == invoice_no)
+        if customer_id:
+            stmt = stmt.where(TaxKeluaranModel.customer_code == customer_id)
+        if tr_code:
+            stmt = stmt.where(TaxKeluaranModel.trx_code == tr_code)
+
+        stmt = stmt.order_by(TaxKeluaranModel.invoice_date.desc())
+        
+        query = await db.execute(stmt)
+        data = query.all()
+        
+        result = []
+        for tax, supplier, schdinvd, kpromosi, distcust in data:
+            amount = tax.amount_curr if tax.amount_curr else Decimal('0')
+            dpp = amount / Decimal('1.11')
+            ppn = amount - dpp
+            
+            new_post = ArpjkoModel(
+                company_code= int(tax.company_code) or 0,
+                outlet_code=tax.outlet_code,
+                invoice_date=tax.invoice_date,
+                invoice_no=tax.invoice_no,
+                customer_id=tax.customer_code,
+                tr_code=tax.trx_code,
+                name=distcust.name_tax if distcust else None,
+                address=distcust.address_tax if distcust else None,
+                city_nm=distcust.city_tax if distcust else None,
+                postcode=distcust.postcode_tax if distcust else None,
+                npwp=distcust.npwp_tax if distcust else None,
+                status_ap=supplier.pkp_nonpkp if supplier and hasattr(supplier, 'pkp_nonpkp') else None,
+                kwitansi_no=getattr(tax, 'kwitansi_no', None),
+                agreement_no=schdinvd.agreement_no if schdinvd and hasattr(schdinvd, 'agreement_no') else None,
+                dpp=dpp,
+                ppn=ppn,
+                type_date=getattr(tax, 'peyment_type', None),
+                pph23=Decimal('0'),
+                after_tax=round(dpp + ppn),
+                curr_code=getattr(tax, 'currency_code', 'IDR'),
+                tax_series_no=getattr(tax, 'tax_series_no', None),
+                kurs_rate=getattr(tax, 'currency_rate', 0),
+                remark=getattr(tax, 'periode', ''),
+                pph23_auto=Decimal('0'),
+                npwp_potong=getattr(tax, 'npwp_tax', None),
+                user_create='SYSTEM',
+                date_create=datetime.now()
+            )
+            
+            db.add(new_post)
+            result.append({
+                'company_code': tax.company_code,
+                'outlet_code': tax.outlet_code,
+                'invoice_date': tax.invoice_date,
+                'invoice_no': tax.invoice_no,
+                'customer_id': tax.customer_code,
+                'tr_code': tax.trx_code,
+                'name': distcust.name_tax if distcust else None,
+                'address': distcust.address_tax if distcust else None,
+                'city_nm': distcust.city_tax if distcust else None,
+                'postcode': distcust.postcode_tax if distcust else None,
+                'npwp': distcust.npwp_tax if distcust else None,
+                'status_ap': supplier.pkp_nonpkp if supplier else None,
+                'kwitansi_no': getattr(tax, 'kwitansi_no', None),
+                'agreement_no': schdinvd.agreement_no if schdinvd else None,
+                'dpp': dpp,
+                'ppn': ppn,
+                'type_date': getattr(tax, 'peyment_type', None),
+                'pph23': 0,
+                'after_tax': round(dpp + ppn),
+                'curr_code': getattr(tax, 'currency_code', 'IDR'),
+                'tax_series_no':getattr(tax, 'tax_series_no', None),
+                'kurs_rate': getattr(tax, 'currency_rate', 0),
+                'remark': getattr(tax, 'periode', ''),
+                'pph23_auto': 0,
+                'npwp_potong': getattr(tax, 'npwp_tax', None),
+                'user_create': 'SYSTEM',
+                'date_create': datetime.now()
+            })
+        
+        await db.commit()
+        return result
+        
+    except Exception as e:
+        await db.rollback()
+        raise e
