@@ -3,9 +3,9 @@ from schemas.tax.tax_keluaran_schema import TaxKeluaranCreate
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date
 
-async def get_tax_keluaran_controller(db: AsyncSession, limit: int = 10):
+async def get_tax_keluaran_controller(db: AsyncSession):
     try:
-        data = await get_tax_keluaran_repository(db, limit)
+        data = await get_tax_keluaran_repository(db)
 
         return {
             "status": True,

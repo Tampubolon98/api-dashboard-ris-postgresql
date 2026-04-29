@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from schemas.tax.tax_masukan_schema import TaxResponse, UpdateTax, TaxCreate, UpdateTaxResponse, TaxNonapCreate, CreateTaxResponse
 from schemas.tax.tax_keluaran_schema import TaxKeluaranResponse, CreateTaxKeluaranResponse, TaxKeluaranCreate
@@ -36,8 +36,8 @@ async def update_tax_nonap(faktur_rmy: str, update_tax: TaxNonapCreate, db: Asyn
     return result
 
 @router.get("/tax-keluaran/get", response_model=TaxKeluaranResponse, tags=["tax keluaran"])
-async def get_tax_keluaran(db: AsyncSession = Depends(get_db), limit: int = 10):
-    result = await get_tax_keluaran_controller(db, limit)
+async def get_tax_keluaran(db: AsyncSession = Depends(get_db)):
+    result = await get_tax_keluaran_controller(db)
     return result
 
 @router.post("/tax-keluaran/post", response_model=CreateTaxKeluaranResponse, tags=["tax keluaran"])

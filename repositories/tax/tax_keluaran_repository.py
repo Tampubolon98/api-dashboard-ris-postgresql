@@ -10,26 +10,31 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def get_tax_keluaran_repository(db: AsyncSession, limit: int = 10):
-    tax = await db.execute(
-        select(TaxKeluaranModel, SchdinvdModel, SupplierModel, KPromosiModel, DistcustModel)
-        .join(SchdinvdModel, TaxKeluaranModel.invoice_no == SchdinvdModel.invoice_no)
-        .join(SupplierModel, TaxKeluaranModel.customer_code == SupplierModel.supplier_code)
-        .join(KPromosiModel, TaxKeluaranModel.invoice_no == KPromosiModel.invoice_no)
-        .join(DistcustModel, KPromosiModel.distcustnum == DistcustModel.distcustnum)
-        .limit(limit)
+async def get_tax_keluaran_repository(db: AsyncSession):
+    tax_keluaran = await db.execute(
+        select(ArpjkoModel)
+        .order_by(ArpjkoModel.date_create.desc())
+        .limit(1)
     )
 
-    data = tax.all()
+    data = tax_keluaran.scalars().all()
 
     result = []
-    for tax_keluaran, schdinvd, supplier, promosi, distcust in data:
+    for tax in data:
         result.append({
-            'customer_code': tax_keluaran.customer_code,
-            'outlet_code': tax_keluaran.outlet_code,
-            'supplier_code': supplier.supplier_code,
-            'pkp_nonpkp': supplier.pkp_nonpkp,
-            'name_tax': distcust.name_tax
+            'invoice_date': tax.invoice_date,
+            'invoice_no': tax.invoice_no,
+            'customer_id': tax.customer_id,
+            'agreement_no': tax.agreement_no,
+            'name': tax.name,
+            'npwp': tax.npwp,
+            'tax_series_no': tax.tax_series_no,
+            'dpp': tax.dpp,
+            'dpp_nilai_lain': round(tax.dpp * (11 / 12)),
+            'ppn': tax.ppn,
+            'process_tax_out': tax.process_tax_out,
+            'user_create': tax.user_create,
+            'date_create': tax.date_create
         })
     return result
 

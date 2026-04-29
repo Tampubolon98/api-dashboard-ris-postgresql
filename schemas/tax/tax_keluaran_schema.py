@@ -1,16 +1,24 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, List
 from decimal import Decimal
 
 class TaxKeluaranBase(BaseModel):
-    customer_code: str
-    outlet_code: str
-    supplier_code: str
-    pkp_nonpkp: str
-    name_tax: str
+    invoice_date: Optional[str] = None
+    invoice_no: str
+    customer_id: str
+    agreement_no: Optional[str] = None
+    name: Optional[str] = None
+    npwp: Optional[str] = None
+    tax_series_no: Optional[str] = None
+    dpp: Optional[Decimal] = None
+    dpp_nilai_lain: Optional[Decimal] = None
+    ppn: Optional[Decimal] = None
+    process_tax_out: Optional[int] = 0
+    user_create: str
+    date_create: str
 
-    class Config():
+    class Config:
         orm_mode = True
 
 class TaxKeluaranResponse(BaseModel):
