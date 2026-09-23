@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     db_username_orange: str
     db_password_orange: str
 
+    db_host_milkyverse: str
+    db_port_milkyverse: str
+    db_database_milkyverse: str
+    db_username_milkyverse: str
+    db_password_milkyverse: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False

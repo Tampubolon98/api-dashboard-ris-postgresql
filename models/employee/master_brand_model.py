@@ -13,6 +13,8 @@ class MasterBrandModel(Base):
     id_brand_emp = Column(String, primary_key=True)
     user_create = Column(String)
     date_create = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    user_modified = Column(String)
+    date_modified = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
 def __repr__(self):
     return f"<MasterBrandModel (id_brand_emp={self.id_brand_emp})>"

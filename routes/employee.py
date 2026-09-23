@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
-from schemas.employee.master_employee_schema import MasterEmployeeResponse, SearchEmployeeResponse, MasterStoreCodeResponse
+from schemas.employee.master_employee_schema import MasterEmployeeResponse, SearchEmployeeResponse, MasterStoreCodeResponse, MasterStoreResponse
 from typing import List
-from controllers.employee.master_employee_controller import get_master_employee_controller, get_employee_spg_controller, get_employee_pkl_controller, get_employee_terminate_controller, get_search_employee_controller, get_store_code_controller
+from controllers.employee.master_employee_controller import get_master_employee_controller, get_employee_spg_controller, get_employee_pkl_controller, get_employee_terminate_controller, get_search_employee_controller
 from app.database import get_db, get_db_orange
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.employee.master_brand_schema import MasterBrandResponse, MasterSupplierResponse
-from controllers.employee.master_brand_controller import get_master_brand_controller, get_master_supplier_controller
+from schemas.employee.master_brand_schema import MasterBrandResponse, MasterSupplierResponse, CreateMasterBrandResponse, AddMasterBrand
+from controllers.employee.master_brand_controller import get_master_brand_controller, get_master_supplier_controller, create_master_brand_controller
 from schemas.employee.master_mutasi_schema import MasterMutasiResponse
 from controllers.employee.master_mutasi_controller import get_master_mutasi_controller
 
@@ -20,11 +20,6 @@ async def get_master_employee(db: AsyncSession = Depends(get_db)):
 @router.get("/master-employee/search-employee")
 async def get_search_employee(kategori_karyawan: str, db: AsyncSession = Depends(get_db)):
     result = await get_search_employee_controller(db, kategori_karyawan)
-    return result
-
-@router.get("/master-employee/store-code", response_model=MasterStoreCodeResponse)
-async def get_store_code(db: AsyncSession = Depends(get_db_orange)):
-    result = await get_store_code_controller(db)
     return result
 
 @router.get("/master-employee/get-spg", response_model=MasterEmployeeResponse)
@@ -43,6 +38,11 @@ async def get_master_brand(db: AsyncSession = Depends(get_db)):
     result = await get_master_brand_controller(db)
     return result
 
+@router.post("/master-brand/create-brand", response_model=CreateMasterBrandResponse)
+async def create_master_brand(create_brand: AddMasterBrand, db: AsyncSession = Depends(get_db)):
+    result = await create_master_brand_controller(create_brand=create_brand, db=db)
+    return result
+
 @router.get("/master-brand/get-supplier", response_model=MasterSupplierResponse)
 async def get_master_supplier(db: AsyncSession = Depends(get_db)):
     result = await get_master_supplier_controller(db)
@@ -59,3 +59,9 @@ async def get_master_mutasi(db: AsyncSession = Depends(get_db)):
 async def get_master_terminate(db: AsyncSession = Depends(get_db)):
     result = await get_employee_terminate_controller(db)
     return result
+
+# master store
+# @router.get("/master-store/get-store", response_model=MasterStoreResponse)
+# async def get_master_store(db: AsyncSession = Depends(get_db_orange), ):
+#     result = await get_master_store_controller(db)
+#     return result
