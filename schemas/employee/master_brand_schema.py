@@ -26,3 +26,7 @@ class MasterSupplierResponse(BaseModel):
     message: str
     total_data: int
     data: List[str]
+
+class CreateMasterBrandResponse(BaseModel):
+    status: bool
+    message: str

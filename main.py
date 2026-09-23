@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database import get_db, engine, Base
 from app.config import settings
-from routes import tax, employee, supplier
+from routes import tax, employee, supplier, member
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="API Dashboard")
@@ -30,3 +30,4 @@ async def root():
 app.include_router(tax.router)
 app.include_router(employee.router, tags=["employee"])
 app.include_router(supplier.router, tags=["supplier"])
+app.include_router(member.router, tags=["member"])

@@ -46,16 +46,6 @@ async def get_search_employee_controller(db: AsyncSession, kategori_karyawan: st
             "message": str(e)
         }
     
-async def get_store_code_controller(db: AsyncSession):
-    try:
-        data = await get_store_code_repository(db)
-        return data
-    except Exception as e:
-        return {
-            "status": False,
-            "message": str(e)
-        }
-    
 async def get_employee_spg_controller(db: AsyncSession):
     try:
         data = await get_employee_spg_repository(db)

@@ -37,7 +37,7 @@ class MasterEmployeeModel(Base):
     def __repr__(self):
         return f"<MasterEmployeeModel (id_employee={self.id_employee}, supplier='{self.supplier}')>"
     
-class MasterStoreCodeModel(Base):
+class MasterStore(Base):
     __tablename__ = "p_c_x_homebase_tbl"
     __table_args__ = {"schema": "public"}
 

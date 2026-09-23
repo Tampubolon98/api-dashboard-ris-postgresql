@@ -9,6 +9,9 @@ db_password_ris = quote_plus(settings.db_password_ris)
 db_user_orange = quote_plus(settings.db_username_orange)
 db_pass_orange = quote_plus(settings.db_password_orange)
 
+db_user_milkyverse = quote_plus(settings.db_username_milkyverse)
+db_pass_milkyverse = quote_plus(settings.db_password_milkyverse)
+
 # Create an async database URL without the query parameters
 ASYNC_DATABASE_URL_RIS = (
     f"postgresql+asyncpg://"
@@ -26,6 +29,14 @@ ASYNC_DATABASE_URL_ORANGE =(
     f"{settings.db_database_orange}"
 )
 
+ASYNC_DATABASE_URL_MILKYVERSE =(
+    f"postgresql+asyncpg://"
+    f"{db_user_milkyverse}:{db_pass_milkyverse}@"
+    f"{settings.db_host_milkyverse}:"
+    f"{settings.db_port_milkyverse}/"
+    f"{settings.db_database_milkyverse}"
+)
+
 # Create an async SQLAlchemy engine with SSL configuration
 engine = create_async_engine(
     ASYNC_DATABASE_URL_RIS, 
@@ -41,6 +52,13 @@ engine_orange = create_async_engine(
     pool_recycle=300
 )
 
+engine_milkyverse = create_async_engine(
+    ASYNC_DATABASE_URL_MILKYVERSE,
+    echo=True,
+    pool_pre_ping=True,
+    pool_recycle=300
+)
+
 # Create a session factory for creating database sessions
 async_session = sessionmaker(
     engine,
@@ -50,6 +68,12 @@ async_session = sessionmaker(
 
 async_session_orange = sessionmaker(
     engine_orange,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
+
+async_session_milkyverse = sessionmaker(
+    engine_milkyverse,
     class_=AsyncSession,
     expire_on_commit=False
 )
@@ -71,6 +95,17 @@ async def get_db():
 
 async def get_db_orange():
     async with async_session_orange() as session:
+        try:
+            yield session
+            # await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+async def get_db_milkyverse():
+    async with async_session_milkyverse() as session:
         try:
             yield session
             # await session.commit()

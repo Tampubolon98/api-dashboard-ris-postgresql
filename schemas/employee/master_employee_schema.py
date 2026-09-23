@@ -76,3 +76,13 @@ class MasterStoreCodeResponse(BaseModel):
     message: str
     total_data: int
     data: list[MasterStoreCodeBase]
+
+class MasterStore(BaseModel):
+    store_code: str = ""
+    store_name: str = ""
+
+class MasterStoreResponse(BaseModel):
+    status: bool
+    message: str
+    total_data: int
+    data: list[MasterStore]
