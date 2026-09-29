@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 from decimal import Decimal
 
@@ -20,3 +20,9 @@ class MemberResponse(BaseModel):
     message: str
     total_data: int
     data: list[MemberMilkyverseBase]
+
+class paramMember(BaseModel):
+    id_batch: Optional[str] = None
+    status: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None

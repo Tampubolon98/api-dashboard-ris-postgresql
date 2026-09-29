@@ -2,10 +2,12 @@ from repositories.member.member_milkyverse_repository import get_pembayaran_memb
 from app.database import get_db_milkyverse
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
+from datetime import date, datetime
+from schemas.member.member_milkyverse_schema import paramMember
 
-async def get_pembayaran_members_service(db_milkyverse: AsyncSession, db: AsyncSession, compid):
+async def get_pembayaran_members_service(db_milkyverse: AsyncSession, db: AsyncSession, compid, params: paramMember):
     try:
-        result = await get_pembayaran_member_repository(db_milkyverse, db, compid)
+        result = await get_pembayaran_member_repository(db_milkyverse, db, compid, params)
 
         if not result:
             return {

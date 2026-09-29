@@ -3,8 +3,10 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import cast, String, desc, asc
 from models.serverside_model import ComponentServerSide
+from datetime import date, datetime
+from schemas.member.member_milkyverse_schema import paramMember
 
-async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: AsyncSession, compid: ComponentServerSide):
+async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: AsyncSession, compid: ComponentServerSide, id_batch: str, status: str, start_date: date, end_date: date):
     order_by = 'created_date'
     if compid.sort_by:
         order_by = compid.sort_by
@@ -13,6 +15,15 @@ async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: Asyn
     .join(MasterPCA, cast(MemberMilkyverseModel.po_no, String) == cast(MasterPCA.pca_no_po, String))
     .join(MasterReceivh, cast(MemberMilkyverseModel.po_no, String) == cast(MasterReceivh.po_no, String))
     .where(MemberMilkyverseModel.flag == '1', MemberMilkyverseModel.flag_pdf == 1))
+
+    if paramMember.id_batch:
+        query = query.where(MemberMilkyverseModel.trx_pdf == paramMember.id_batch)
+
+    if paramMember.start_date:
+        query = query.where(MasterPCA.pca_date_create == paramMember.start_date)
+
+    if paramMember.end_date:
+        query = query.where(MasterPCA.pca_date_create == paramMember.end_date)
 
     if compid.sort_type.lower() == "desc":
         query = query.order_by(desc(getattr(MemberMilkyverseModel, order_by)))
@@ -52,6 +63,9 @@ async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: Asyn
                 cast(MasterPY.pyh_id_batch, String).in_(id_kasbon_list)
             )
         )
+
+        if paramMember.status:
+            query_py = query_py.where(MasterPY.pyh_status == paramMember.status)
 
         payment_result = await db.execute(query_py)
         result_payment = payment_result.all()
