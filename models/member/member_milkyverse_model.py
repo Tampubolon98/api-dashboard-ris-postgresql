@@ -44,6 +44,8 @@ class MasterPY(Base):
     pyh_tgl_bayar = Column(DateTime, nullable=True)
     pyh_amount = Column(String)
     pyh_status = Column(String)
+    pyh_create_by = Column(String)
+    pyh_create_date = Column(DateTime, nullable=True)
 
 class MasterPD(Base):
     __tablename__ = "payment_details"
