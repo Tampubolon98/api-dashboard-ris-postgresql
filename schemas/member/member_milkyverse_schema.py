@@ -12,6 +12,8 @@ class MemberMilkyverseBase(BaseModel):
     po_no: Optional[str] = None
     invoice_no: Optional[str] = None
     rcv_no: Optional[str] = None
+    create_by: Optional[str] = None
+    create_date: Optional[datetime] = None
 
 class MemberResponse(BaseModel):
     status: bool

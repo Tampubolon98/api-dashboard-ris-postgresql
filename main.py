@@ -7,7 +7,7 @@ from app.config import settings
 from routes import tax, employee, supplier, member
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="API Dashboard")
+app = FastAPI(title="API RIS")
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,7 +25,7 @@ async def startup():
 
 @app.get("/")
 async def root():
-    return {"message": "API Dashboard is running"}
+    return {"message": "API RIS is running"}
 
 app.include_router(tax.router)
 app.include_router(employee.router, tags=["employee"])
