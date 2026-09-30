@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 from decimal import Decimal
 
@@ -18,5 +18,5 @@ class MemberMilkyverseBase(BaseModel):
 class MemberResponse(BaseModel):
     status: bool
     message: str
-    total_data: int
-    data: list[MemberMilkyverseBase]
+    total_data: Optional[int] = None
+    data: Optional[list[MemberMilkyverseBase]] = None
