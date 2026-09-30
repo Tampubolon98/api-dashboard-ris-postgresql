@@ -1,12 +1,12 @@
 from models.member.member_milkyverse_model import MasterPCA, MasterPD, MasterPY, MasterReceivh, MemberMilkyverseModel
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import cast, String, desc, asc
+from sqlalchemy import cast, String, desc, asc, Date
 from models.serverside_model import ComponentServerSide
 from datetime import date, datetime
-from schemas.member.member_milkyverse_schema import paramMember
+from typing import Optional
 
-async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: AsyncSession, compid: ComponentServerSide, id_batch: str, status: str, start_date: date, end_date: date):
+async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: AsyncSession, compid: ComponentServerSide, id_batch: Optional[str] = None, status: Optional[str] = None, start_date: Optional[date] = None, end_date: Optional[date] = None) -> list:
     order_by = 'created_date'
     if compid.sort_by:
         order_by = compid.sort_by
@@ -16,14 +16,14 @@ async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: Asyn
     .join(MasterReceivh, cast(MemberMilkyverseModel.po_no, String) == cast(MasterReceivh.po_no, String))
     .where(MemberMilkyverseModel.flag == '1', MemberMilkyverseModel.flag_pdf == 1))
 
-    if paramMember.id_batch:
-        query = query.where(MemberMilkyverseModel.trx_pdf == paramMember.id_batch)
+    if id_batch:
+        query = query.where(MemberMilkyverseModel.trx_pdf == id_batch)
 
-    if paramMember.start_date:
-        query = query.where(MasterPCA.pca_date_create == paramMember.start_date)
+    if start_date:
+        query = query.where(cast(MasterPCA.pca_date_create, Date) >= start_date)
 
-    if paramMember.end_date:
-        query = query.where(MasterPCA.pca_date_create == paramMember.end_date)
+    if end_date:
+        query = query.where(cast(MasterPCA.pca_date_create, Date) <= end_date)
 
     if compid.sort_type.lower() == "desc":
         query = query.order_by(desc(getattr(MemberMilkyverseModel, order_by)))
@@ -64,8 +64,8 @@ async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: Asyn
             )
         )
 
-        if paramMember.status:
-            query_py = query_py.where(MasterPY.pyh_status == paramMember.status)
+        if status:
+            query_py = query_py.where(MasterPY.pyh_status == status.upper())
 
         payment_result = await db.execute(query_py)
         result_payment = payment_result.all()

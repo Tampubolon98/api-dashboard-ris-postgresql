@@ -3,11 +3,11 @@ from app.database import get_db_milkyverse
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from datetime import date, datetime
-from schemas.member.member_milkyverse_schema import paramMember
+from typing import Optional
 
-async def get_pembayaran_members_service(db_milkyverse: AsyncSession, db: AsyncSession, compid, params: paramMember):
+async def get_pembayaran_members_service(db_milkyverse: AsyncSession, db: AsyncSession, compid, id_batch: Optional[str] = None, status: Optional[str] = None, start_date: Optional[date] = None, end_date: Optional[date] = None) -> dict:
     try:
-        result = await get_pembayaran_member_repository(db_milkyverse, db, compid, params)
+        result = await get_pembayaran_member_repository(db_milkyverse, db, compid, id_batch, status, start_date, end_date)
 
         if not result:
             return {

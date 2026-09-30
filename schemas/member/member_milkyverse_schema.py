@@ -18,11 +18,5 @@ class MemberMilkyverseBase(BaseModel):
 class MemberResponse(BaseModel):
     status: bool
     message: str
-    total_data: int
-    data: list[MemberMilkyverseBase]
-
-class paramMember(BaseModel):
-    id_batch: Optional[str] = None
-    status: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    total_data: Optional[int] = None
+    data: Optional[list[MemberMilkyverseBase]] = None
