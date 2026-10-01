@@ -5,7 +5,7 @@ import json
 class ComponentServerSide:
     def __init__(
         self,
-        limit: int = Query(10, ge=1),
+        limit: int = Query(None, ge=1),
         skip: int = Query(0, ge=0),
         sort_type: str = Query("asc"),
         sort_by: str = Query(None)
