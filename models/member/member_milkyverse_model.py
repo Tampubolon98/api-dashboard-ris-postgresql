@@ -9,6 +9,8 @@ class MemberMilkyverseModel(Base):
 
     trx_pdf = Column(String, primary_key=True)
     po_no = Column(String)
+    rcv_no = Column(String)
+    date_pdf = Column(DateTime)
     flag = Column(String)
     flag_pdf = Column(Numeric)
     created_date = Column(DateTime)
@@ -22,6 +24,10 @@ class MasterPCA(Base):
 
     pca_no_po = Column(String, primary_key=True)
     pca_amount = Column(String)
+    pca_user_create = Column(String)
+    pca_pcr_code = Column(String)
+    pca_payment_type = Column(String)
+    pca_store_code = Column(String)
     pca_date_create = Column(DateTime, nullable=True)
 
     def __repr__(self):
@@ -33,6 +39,7 @@ class MasterReceivh(Base):
 
     po_no = Column(String, primary_key=True)
     store_code = Column(String)
+    invoice_no = Column(String)
     rcv_no = Column(String)
     rcv_date = Column(DateTime, nullable=True)
 

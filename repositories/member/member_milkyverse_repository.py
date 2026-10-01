@@ -1,7 +1,7 @@
 from models.member.member_milkyverse_model import MasterPCA, MasterPD, MasterPY, MasterReceivh, MemberMilkyverseModel
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import cast, String, desc, asc, Date
+from sqlalchemy import cast, String, desc, asc, Date, func
 from models.serverside_model import ComponentServerSide
 from datetime import date, datetime
 from typing import Optional
@@ -106,3 +106,54 @@ async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: Asyn
         })
 
     return data
+
+async def get_detail_pembayaran_member_repository(db_milkyverse: AsyncSession, compid: ComponentServerSide, id_batch: str) -> list:
+    order_by = 'created_date'
+    if compid.sort_by:
+        order_by = compid.sort_by
+
+    query = (select(MemberMilkyverseModel.po_no, MemberMilkyverseModel.rcv_no, MemberMilkyverseModel.date_pdf, MemberMilkyverseModel.flag_pdf, MemberMilkyverseModel.trx_pdf.label('id_kasbon'), MasterReceivh.invoice_no, MasterPCA.pca_no_po, MasterPCA.pca_amount.label('nominal_transfer'), MasterPCA.pca_date_create.label('tanggal_transfer'), MasterPCA.pca_user_create, MasterPCA.pca_pcr_code, MasterPCA.pca_payment_type, MasterPCA.pca_store_code, MasterPCA.pca_amount.label("nominal_transfer"))
+    .join(MasterPCA, cast(MemberMilkyverseModel.po_no, String) == cast(MasterPCA.pca_no_po, String))
+    .join(MasterReceivh, cast(MemberMilkyverseModel.po_no, String) == cast(MasterReceivh.po_no, String))
+    .where(MemberMilkyverseModel.flag == '1', MemberMilkyverseModel.flag_pdf == 1, MemberMilkyverseModel.trx_pdf == id_batch))
+
+    total_query = (
+        select(
+            func.coalesce(
+                func.sum(MasterPCA.pca_amount),
+                0
+            )
+        )
+        .select_from(MemberMilkyverseModel)
+        .join(
+            MasterPCA,
+            cast(MemberMilkyverseModel.po_no, String)
+            == cast(MasterPCA.pca_no_po, String)
+        )
+        .join(
+            MasterReceivh,
+            cast(MemberMilkyverseModel.po_no, String)
+            == cast(MasterReceivh.po_no, String)
+        )
+        .where(
+            MemberMilkyverseModel.flag == "1",
+            MemberMilkyverseModel.flag_pdf == 1,
+        )
+    )
+
+    if compid.sort_type.lower() == 'desc':
+        query = query.order_by(desc(getattr(MemberMilkyverseModel, order_by)))
+    else:
+        query = query.order_by(getattr(MemberMilkyverseModel, order_by))
+
+    total_result = await db_milkyverse.execute(total_query)
+    total_nominal = total_result.scalar_one()
+
+    query = query.limit(compid.limit).offset(compid.skip)
+    member_detail = await db_milkyverse.execute(query)
+    result_member_detail = member_detail.all()
+
+    return {
+        "data": result_member_detail,
+        "total_nominal": total_nominal
+    }
