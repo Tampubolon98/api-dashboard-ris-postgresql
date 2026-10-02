@@ -138,6 +138,7 @@ async def get_detail_pembayaran_member_repository(db_milkyverse: AsyncSession, c
         .where(
             MemberMilkyverseModel.flag == "1",
             MemberMilkyverseModel.flag_pdf == 1,
+            MemberMilkyverseModel.trx_pdf == id_batch
         )
     )
 

@@ -19,5 +19,11 @@ class MemberResponse(BaseModel):
     status: bool
     message: str
     total_data: Optional[int] = None
+    data: Optional[list[MemberMilkyverseBase]] = None
+
+class MemberDetailResponse(BaseModel):
+    status: bool
+    message: str
+    total_data: Optional[int] = None
     total_nominal: Optional[Decimal] = None
     data: Optional[list[MemberMilkyverseBase]] = None
