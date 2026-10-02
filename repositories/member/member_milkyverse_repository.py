@@ -7,14 +7,14 @@ from datetime import date, datetime
 from typing import Optional
 
 async def get_pembayaran_member_repository(db_milkyverse: AsyncSession, db: AsyncSession, compid: ComponentServerSide, id_batch: Optional[str] = None, status: Optional[str] = None, start_date: Optional[date] = None, end_date: Optional[date] = None) -> list:
-    order_by = 'created_date'
+    order_by = 'trx_pdf'
     if compid.sort_by:
         order_by = compid.sort_by
 
-    query = (select(MemberMilkyverseModel.trx_pdf.label("id_kasbon"), MasterPCA.pca_amount.label("nominal_transfer"), MasterPCA.pca_date_create.label("tanggal_transfer"))
+    query = (select(MemberMilkyverseModel.trx_pdf.label("id_kasbon"), func.sum(MasterPCA.pca_amount).label("nominal_transfer"), func.max(MasterPCA.pca_date_create).label("tanggal_transfer"), func.max(MemberMilkyverseModel.created_date).label("created_date"))
     .join(MasterPCA, cast(MemberMilkyverseModel.po_no, String) == cast(MasterPCA.pca_no_po, String))
     .join(MasterReceivh, cast(MemberMilkyverseModel.po_no, String) == cast(MasterReceivh.po_no, String))
-    .where(MemberMilkyverseModel.flag == '1', MemberMilkyverseModel.flag_pdf == 1))
+    .where(MemberMilkyverseModel.flag == '1', MemberMilkyverseModel.flag_pdf == 1).group_by(MemberMilkyverseModel.trx_pdf))
 
     if id_batch:
         query = query.where(MemberMilkyverseModel.trx_pdf == id_batch)
